@@ -1,6 +1,10 @@
+//make five random number (1~45)
+//no duplicate number
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
 int main(void)
 {
 	int i, j, lotto[6];
