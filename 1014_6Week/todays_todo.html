@@ -1,0 +1,89 @@
+<!DOCTYPE HTML>
+<HTML>
+    <head>
+        <title>주사위 그리기</title>
+    </head>
+
+    <body>
+        <h3>주사위 그리기</h3>
+        <hr>
+
+        <canvas id="canvas1"
+        style="background-color: seagreen;"
+        width="500" height="300">
+            <p>브라우저가 이 태그를 지원하지 않습니다.</p>
+        </canvas>
+
+        <script>
+            var canvas = document.getElementById("canvas1");
+            var context = canvas.getContext("2d");
+
+            context.beginPath();
+            //사각형 : 윗 줄
+            context.rect (0, 0, 100, 100);
+            context.rect (125, 0, 100, 100);
+            context.rect (250, 0, 100, 100);
+            //아래 줄
+            context.rect (0, 125, 100, 100);
+            context.rect (125, 125, 100, 100);
+            context.rect (250, 125, 100, 100);
+            context.stroke();
+            
+            context.beginPath();
+            //점 1
+            context.moveTo(50, 50);
+            context.arc(50, 50, 10, 0, 2*Math.PI, false);
+            //점 2
+            context.moveTo(145, 20);
+            context.arc(145, 20, 7, 0, 2*Math.PI, false);
+            context.moveTo(205, 80);
+            context.arc(205, 80, 7, 0, 2*Math.PI, false);
+            //점 3
+            context.moveTo(270, 20);
+            context.arc(270, 20, 7, 0, 2*Math.PI, false);
+            context.moveTo(300, 50);
+            context.arc(300, 50, 7, 0, 2*Math.PI, false);
+            context.moveTo(330, 80);
+            context.arc(330, 80, 7, 0, 2*Math.PI, false);
+
+            //점 4
+            context.moveTo(20, 145);
+            context.arc(20, 145, 7, 0, 2*Math.PI, false);
+            context.moveTo(80, 145);
+            context.arc(80, 145, 7, 0, 2*Math.PI, false);
+            context.moveTo(20, 205);
+            context.arc(20, 205, 7, 0, 2*Math.PI, false);
+            context.moveTo(80, 205);
+            context.arc(80, 205, 7, 0, 2*Math.PI, false);
+            //점 5
+            context.moveTo(145, 145);
+            context.arc(145, 145, 7, 0, 2*Math.PI, false);
+            context.moveTo(205, 145);
+            context.arc(205, 145, 7, 0, 2*Math.PI, false);
+            context.moveTo(175, 175);
+            context.arc(175, 175, 7, 0, 2*Math.PI, false);
+            context.moveTo(145, 205);
+            context.arc(145, 205, 7, 0, 2*Math.PI, false);
+            context.moveTo(205, 205);
+            context.arc(205, 205, 7, 0, 2*Math.PI, false);
+            //점6
+            context.moveTo(275, 150);
+            context.arc(275, 150, 7, 0, 2*Math.PI, false);
+            context.moveTo(325, 150);
+            context.arc(325, 150, 7, 0, 2*Math.PI, false);
+            context.moveTo(275, 175);
+            context.arc(275, 175, 7, 0, 2*Math.PI, false);
+            context.moveTo(325, 175);
+            context.arc(325, 175, 7, 0, 2*Math.PI, false);
+            context.moveTo(275, 200);
+            context.arc(275, 200, 7, 0, 2*Math.PI, false);
+            context.moveTo(325, 200);
+            context.arc(325, 200, 7, 0, 2*Math.PI, false);
+
+            context.fillStyle = "black";
+            context.fill();
+        
+            
+        </script>
+    </body>
+</HTML>
