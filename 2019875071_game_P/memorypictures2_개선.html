@@ -1,0 +1,314 @@
+<html>
+<head>
+    <title>짝맞추기 게임 - 사진 버전</title>
+    <style>
+		#vid {position:absolute; visibility:hidden; z-index: 0; 
+			top:100;
+            left: 750;
+            width:330px;
+            margin:20px;
+        }
+
+
+        form {
+            position:absolute;
+            top:100;
+            left: 750;
+            width:330px;
+            margin:20px;
+            border: 2px solid rgb(210, 150, 55);
+            border-radius: 5px;
+            background-color: rgb(0, 0, 0);
+            font-size: 15pt;
+            color: rgb(255, 255, 255);
+            text-shadow: -1px 0 #000, 0 1px #000, 1px 0 #000, 0 -1px #000;
+            /*https://mintaku.tistory.com/27*/
+            padding:20px;
+        }
+        input {
+            text-align:right;
+        }
+        body {
+            background-color: rgb(230, 160, 170);
+        }
+    </style>
+    <script type="text/javascript">
+	var cwidth = 700; //캔버스 크기
+	var cheight = 700;
+	
+    var cardnum; //새로 추가. 레벨에 따른 카드 개수
+
+	var ctx;
+	var firstpick = true;
+	var firstcard = -1;
+	var secondcard;
+	
+	var backcolor = "rgb(0, 0, 0)"; //카드 뒷면 색
+	var tablecolor = "rgb(230, 160, 170)"; //배경 색
+	var bordercolor = "rgb(210, 150, 55)" //테두리 색
+    var txtcolor = "rgb(0, 0, 0)" //글자 색
+    var deck = [];
+
+	var firstsx = 50;
+	var firstsy = 100;
+	var margin = 30;
+	var cardwidth = 100;
+	var cardheight = 100;
+	
+	var tried = 0; //추가됨. 뒤집어 본 횟수를 보여줌.
+
+	var tid;
+	var matched;
+	var starttime;
+	var count = 0;
+
+	var pairs = [ //카드에 들어갈 사진들
+		["01.jpg","01.jpg"],
+	   [ "02.jpg","02.jpg"],
+	  ["03.jpg","03.jpg"],
+	   ["04.jpg","04.jpg"],
+	   ["05.jpg","05.jpg"]
+
+       , ["06.jpg","06.jpg"],
+	   [ "07.jpg","07.jpg"],
+	  ["08.jpg","08.jpg"],
+	   ["09.jpg","09.jpg"],
+	   ["10.jpg","10.jpg"]
+	]
+
+function Card(sx,sy,swidth,sheight, img, info) { //카드 틀
+	this.sx = sx;
+	this.sy = sy;
+	this.swidth = swidth;
+	this.sheight = sheight;
+	this.info = info;
+	this.img = img;
+	this.draw = drawback;
+}
+
+function makedeck() {
+	var i;
+	var acard;
+	var bcard;
+	var pica;
+	var picb;
+	var cx = firstsx;
+	var cy = firstsy;
+	for(i=0;i<cardnum;i++) { //주어진 길이 동안
+        if (cx >= 700) {
+            cx = firstsx;
+            cy += 250;
+        }
+
+        pica = new Image();
+		pica.src = pairs[i][0]; //같은 사람 사진 둘 중 첫번째를 src로 넣음
+		acard = new Card(cx,cy,cardwidth,cardheight,pica,i);
+		deck.push(acard); //덱 배열에 삽입
+
+		picb = new Image();
+		picb.src = pairs[i][1];	//같은 사람 사진 둘 중 두번째를 src로 넣음
+		bcard = new Card(cx,cy+cardheight+margin,cardwidth,cardheight,picb,i);
+		deck.push(bcard); //덱 배열에 삽입
+		cx = cx+cardwidth+ margin;
+		acard.draw();
+		bcard.draw();
+	}
+	
+}
+
+function shuffle() {
+    var i;
+    var k;
+    var holderinfo;
+    var holderimg;
+    var dl = deck.length
+    var nt;
+	for (nt=0;nt<3*dl;nt++) {  //do the swap 3 times deck.length times
+	  i = Math.floor(Math.random()*dl); //(0~1의 랜덤값) * 덱 길이를 구한다. 즉 덱 안에서 무작위 하나를 뽑는다
+	  k = Math.floor(Math.random()*dl); //위와 동일
+	  holderinfo = deck[i].info;
+	  holderimg = deck[i].img;
+	  deck[i].info = deck[k].info;
+	  deck[i].img = deck[k].img;
+	  deck[k].info = holderinfo;
+	  deck[k].img = holderimg;
+	}
+}
+
+
+function drawback() { //뒷면
+	ctx.fillStyle = backcolor;
+	ctx.fillRect(this.sx,this.sy,this.swidth,this.sheight);	//카드 크기의 사각형을 채우는 식으로 뒤집음
+    ctx.strokeStyle = bordercolor;
+    ctx.strokeRect(this.sx, this.sy, this.swidth, this.sheight); //추가한 부분. 테두리
+}
+
+
+function choose(ev) { //이건또뭐야
+    var out;
+	var mx;
+	var my;
+	var pick1;
+	var pick2;
+	tried++;
+	if ( ev.layerX ||  ev.layerX == 0) { // Firefox
+   			mx= ev.layerX;
+    		my = ev.layerY;
+  		} else if (ev.offsetX || ev.offsetX == 0) { // Opera
+    		mx = ev.offsetX;
+    		my = ev.offsetY;
+  		}
+	var i;
+	for (i=0;i<deck.length;i++){ //덱 길이 동안
+		var card = deck[i];
+		if (card.sx >=0)  //this is the way to avoid checking for clicking on this space
+		if ((mx>card.sx)&&(mx<card.sx+card.swidth)&&(my>card.sy)&&(my<card.sy+card.sheight)) {
+            //위에서 돌아가고 있는 for 루프에서 선택한 카드의 범위 안을 클릭한 경우. =그러니까 카드를 클릭한 경우
+			//check that this isn't clicking on first card
+			if ((firstpick)|| (i!=firstcard)) {
+				break;}
+		}
+	}
+	if (i<deck.length) {  //clicked on a card
+		if (firstpick) {
+			firstcard = i; //첫 카드가 덱에서 몇번째에 있는지
+			firstpick = false;
+			ctx.drawImage(card.img,card.sx,card.sy,card.swidth,card.sheight); 
+		}
+		else {
+			secondcard = i; //두 번째 카드가 덱에서 몇번째에 있는지
+			ctx.drawImage(card.img,card.sx,card.sy,card.swidth,card.sheight); 
+		  	if (card.info==deck[firstcard].info) { //이 카드의 info(덱 번호)가 firstcard와 일치 하는 경우
+				matched = true;
+				count++; //매치 된 카드 짝 개수
+				/*
+                ctx.fillStyle= tablecolor; //배경색으로 칠해서 지우기
+				ctx.fillRect(10,340,900,100);
+				ctx.fillStyle=backcolor;
+				ctx.fillText("현재까지 맞춘 횟수: "+String(count),10,360);
+				*/ //이 코드는 correct()로 옮길 것이다.
+                correct();
+				
+                if (count>= .5*deck.length) { //덱 길이 만큼 카드 짝을 맞추었음
+					var now = new Date();
+					var nt = Number(now.getTime());
+					var seconds = Math.floor(.5+(nt-starttime)/1000); 
+					ctx.fillStyle= tablecolor;
+					ctx.fillRect(0,0,900,900);
+					ctx.fillStyle=txtcolor;
+					out = "게임 완료까지 걸린 시간: "+String(seconds)+ "초";
+					ctx.fillText(out,10,100);
+					out = "시도 횟수: "+Math.floor(tried/2);
+					ctx.fillText(out,10,150);
+					ctx.fillText("다시 하시려면 페이지를 새로고침 하세요.",10,300);
+					
+					v = document.getElementById("vid");
+					v.style.visibility = "visible";
+					v.style.zIndex="10000";
+					v.play();
+					
+					return;
+				}
+				
+			}
+			else {
+				matched = false;
+			}
+			firstpick = true;
+			tid = setTimeout(flipback,1000);
+			did();
+		}
+	}
+}
+
+function flipback() {
+	var card;
+	if (!matched) { //매치가 안된 경우. (matched==False인 경우, !matched 는 True가 된다.->if문 진행)
+	    deck[firstcard].draw();
+	    deck[secondcard].draw();
+	}
+	else { //matched == True
+		ctx.fillStyle = tablecolor; //배경색으로 채워서 카드를 지운다
+				ctx.fillRect(deck[secondcard].sx,deck[secondcard].sy,deck[secondcard].swidth,deck[secondcard].sheight);
+				ctx.fillRect(deck[firstcard].sx,deck[firstcard].sy,deck[firstcard].swidth,deck[firstcard].sheight);
+				deck[secondcard].sx = -1;
+				deck[firstcard].sx = -1;
+	}
+}
+
+function did() { //시도 횟수 쓰는 함수
+	ctx.fillStyle= tablecolor; //배경색으로 칠해서 지우기
+    ctx.fillRect(10,cheight-40,900,50);
+    ctx.fillStyle= txtcolor; //글자 칠하기
+	ctx.fillText("현재까지 시도한 횟수: "+Math.floor(tried/2),10,cheight-20);
+}
+
+function correct() { //맞춘 횟수 쓰는 함수
+    ctx.fillStyle= tablecolor; //배경색으로 칠해서 지우기
+    ctx.fillRect(10,cheight-100,900,50);
+    ctx.fillStyle= txtcolor; //글자 칠하기
+    ctx.fillText("현재까지 맞춘 횟수: "+count,10,cheight-50);
+}
+
+function getGame(){
+    var lev;
+    for (i=0;i<document.gf.level.length;i++) {
+        if (document.gf.level[i].checked) {
+            lev = document.gf.level[i].value;
+            break;
+        }
+    }
+
+    if (lev == "hard") {
+        cardnum = 10;
+    }
+    else if (lev == "moderate") {
+        cardnum = 5;
+    }
+    makedeck();
+    shuffle();
+    
+    ctx.font="bold 20pt sans-serif";
+    ctx.fillStyle=txtcolor;
+    ctx.fillText("맞춰볼 두 카드를 클릭하세요.",10,30);
+    correct();
+	did();
+    starttime = new Date();
+    starttime = Number(starttime.getTime());
+
+    return false;
+}
+
+function init() {
+    ctx = document.getElementById('canvas').getContext('2d'); 
+    canvas1 = document.getElementById('canvas');
+    canvas1.addEventListener('click',choose,false);
+}
+
+
+</script>
+</head>
+<body onLoad="init();">  
+<canvas id="canvas" width="700" height="700">
+이 브라우저는 HTML5의 canvas 요소를 지원하지 않습니다.
+</canvas>  
+<br/>
+
+<form name="gf" id="gf" onSubmit="return getGame();" >
+    <br/>
+    <input type="radio" value="hard" name="level" id="level" />어려움<br/>
+    <input type="radio" value="moderate" name="level_m" id="level" />보통<br/>
+    <br>
+    <input type="submit" value="게임 시작"/><br/>
+</form>
+
+<video id="vid" controls="controls"  preload="auto"> 
+	<source src="shortfireworks.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'> 
+	<source src="shortfireworks.theora.ogv" type='video/ogg; codecs="theora, vorbis"'> 
+	<source src="shortfireworks.webmvp8.webm" type="video/webm; codec="vp8, vorbis"'"> 
+	이 브라우저는 video 태그를 인식하지 못 합니다.
+</video>
+	
+
+</body>
+</html>
